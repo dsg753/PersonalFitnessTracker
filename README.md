@@ -13,12 +13,6 @@ A simple yet powerful Personal Fitness Tracker built using **Python** and **PyQt
 
 ---
 
-## Screenshots
-> **Add screenshots here!**
-> Take screenshots of your PyQt5 app running and include them here for a visual demo.
-
----
-
 ## Installation
 To run this project locally, follow these steps:
 
