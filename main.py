@@ -9,6 +9,8 @@ workouts = []  # To store workout types and durations
 calories = []  # To store calorie intake for meals
 workout_goal = 0  # Daily workout goal in minutes
 calorie_goal = 0  # Daily calorie intake goal
+last_workout_type = None  # To remember the last workout type
+last_calories_consumed = None  # To remember the last calorie intake
 
 
 class FitnessTracker(QMainWindow):
@@ -38,6 +40,10 @@ class FitnessTracker(QMainWindow):
         self.view_progress_button.clicked.connect(self.view_progress)
         self.layout.addWidget(self.view_progress_button)
 
+        self.view_history_button = QPushButton("View History")
+        self.view_history_button.clicked.connect(self.view_history)
+        self.layout.addWidget(self.view_history_button)
+
         self.reset_progress_button = QPushButton("Reset Progress")
         self.reset_progress_button.clicked.connect(self.reset_progress)
         self.layout.addWidget(self.reset_progress_button)
@@ -51,7 +57,14 @@ class FitnessTracker(QMainWindow):
         self.layout.addWidget(self.exit_button)
 
     def log_workout(self):
-        workout_type, ok1 = QInputDialog.getText(self, "Log Workout", "Enter workout type (e.g., Running):")
+        global last_workout_type
+
+        # Suggest last workout type
+        workout_type, ok1 = QInputDialog.getText(
+            self, "Log Workout",
+            f"Enter workout type (e.g., Running):",
+            text=last_workout_type or ""
+        )
         if not ok1 or not workout_type.strip():
             return
 
@@ -60,15 +73,27 @@ class FitnessTracker(QMainWindow):
             return
 
         workouts.append((workout_type, duration))
+        last_workout_type = workout_type  # Update last workout type
+
         QMessageBox.information(self, "Success", f"Logged: {workout_type} for {duration} minutes!")
         self.update_status("Workout logged successfully!")
 
     def log_calories(self):
-        calories_consumed, ok = QInputDialog.getInt(self, "Log Calorie Intake", "Enter calories consumed:", min=0, max=5000)
+        global last_calories_consumed
+
+        # Suggest last calorie value
+        calories_consumed, ok = QInputDialog.getInt(
+            self, "Log Calorie Intake",
+            "Enter calories consumed:",
+            value=last_calories_consumed or 0,
+            min=0, max=5000
+        )
         if not ok:
             return
 
         calories.append(calories_consumed)
+        last_calories_consumed = calories_consumed  # Update last calorie value
+
         QMessageBox.information(self, "Success", f"Logged: {calories_consumed} calories!")
         self.update_status("Calorie intake logged successfully!")
 
@@ -85,10 +110,23 @@ class FitnessTracker(QMainWindow):
         QMessageBox.information(self, "Progress", progress_message)
         self.update_status("Progress displayed!")
 
+    def view_history(self):
+        if not workouts and not calories:
+            QMessageBox.information(self, "History", "No history to display yet.")
+            return
+
+        history_message = "Workout History:\n" + "\n".join(f"{w[0]}: {w[1]} min" for w in workouts)
+        history_message += "\n\nCalorie History:\n" + "\n".join(f"{c} calories" for c in calories)
+
+        QMessageBox.information(self, "History", history_message)
+
     def reset_progress(self):
-        global workouts, calories
+        global workouts, calories, last_workout_type, last_calories_consumed
         workouts = []
         calories = []
+        last_workout_type = None
+        last_calories_consumed = None
+
         QMessageBox.information(self, "Reset", "All progress has been reset!")
         self.update_status("Progress reset successfully!")
 
